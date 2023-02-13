@@ -3,16 +3,14 @@ package com.backinfile.brainJava;
 
 import org.objectweb.asm.*;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.OutputStream;
+import java.io.*;
 import java.lang.reflect.InvocationTargetException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardOpenOption;
 import java.util.Random;
 import java.util.Stack;
+import java.util.stream.Collectors;
 
 import static org.objectweb.asm.Opcodes.*;
 
@@ -21,13 +19,20 @@ public class JavaByteCodeInterpreter {
     private static final String PACKAGE_PATH = "com.backinfile.brainJava";
 
 
-    public static void main(String[] args) throws IOException {
+    public static void main(String[] args) throws IOException, InterruptedException {
         var bytes = getJavaBytecode(",.,.,.", CLASS_NAME);
         var path = "output/" + PACKAGE_PATH.replace('.', '/');
         new File(path).mkdirs();
         Files.write(Path.of(path + "/" + CLASS_NAME + ".class"), bytes);
 
         // echo abc | java com.backinfile.brainJava.BrainJavaRunner
+        var proc = Runtime.getRuntime().exec("cmd /c echo abc | java com.backinfile.brainJava.BrainJavaRunner", null, new File("output"));
+
+        BufferedReader stdInput = new BufferedReader(new InputStreamReader(proc.getInputStream()));
+        var result = stdInput.lines().collect(Collectors.joining(""));
+
+        System.out.println("ok = " + result.equals("abc"));
+        System.out.println(result);
     }
 
     public static byte[] getJavaBytecode(String brainFuckCode, String javaClassName) throws IOException {
